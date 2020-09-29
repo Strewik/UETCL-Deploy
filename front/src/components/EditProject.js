@@ -1,13 +1,17 @@
 import { Formik } from "formik";
-import { Form, Datepicker, Input, Button } from "react-formik-ui";
-import axios from "axios";
+import { Form, Datepicker, Button, Input } from "react-formik-ui";
 import * as Yup from "yup";
 import React, { Component } from "react";
 import Box from "@material-ui/core/Box";
 import "react-toastify/dist/ReactToastify.css";
+import "./style.css";
+import cancel from "../images/cancel.png";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { oneProject, updateProject } from "../actions/projects";
 
 const formSchema = Yup.object().shape({
-  project: Yup.string()
+  projectname: Yup.string()
     .min(2, "Too Short!")
     .max(50, "Too Long!")
     .required("You must specify the Project name"),
@@ -54,52 +58,33 @@ const formSchema = Yup.object().shape({
   )
 });
 
-export default class EditProject extends Component {
+class EditProject extends Component {
   constructor(props) {
     super(props);
-    this.state = {
-      item: {
-        project: "",
-        rapstart: "",
-        rapend: "",
-        pdpstart: "",
-        pdpend: "",
-        resettlestart: "",
-        resettleend: "",
-        supervisionstart: "",
-        supervisionend: "",
-        epcstart: "",
-        epcend: "",
-        performstart: "",
-        performend: "",
-        advancestart: "",
-        advanceend: "",
-        insurestart: "",
-        insureend: "",
-        comment: ""
-      }
-    };
+    this.state = {};
+
+    this.onSubmit = this.onSubmit.bind(this);
   }
-  componentDidMount = () => {
-    axios
-      .get(`http://localhost:8000/api/dates/${this.props.match.params.id}/`)
-      .then(res => {
-        this.setState({ item: res.data });
-      })
-      .catch(err => console.log(err));
+
+  static propTypes = {
+    updateProject: PropTypes.func.isRequired,
+    project: PropTypes.object.isRequired,
+    oneProject: PropTypes.func.isRequired,
+    isAuthenticated: PropTypes.bool
   };
 
-  handleChange = e => {
-    e.persist();
+  componentDidMount() {
+    this.props.oneProject(this.props.match.params.id);
+  }
 
-    this.setState(prevState => ({
-      item: { ...prevState.item, [e.target.name]: e.target.value }
-    }));
+  onSubmit = (values, { setSubmitting }) => {
+    this.props.updateProject(this.props.match.params.id, values);
+    this.setSubmitting = setSubmitting;
+    this.props.history.push("/display");
   };
 
   render() {
     const { history } = this.props;
-
     const mystyle = {
       paddingLeft: "100px",
       paddingRight: "100px",
@@ -112,23 +97,9 @@ export default class EditProject extends Component {
     return (
       <Formik
         enableReinitialize={true}
-        initialValues={this.state.item}
+        initialValues={this.props.project}
         validationSchema={formSchema}
-        onSubmit={async (values, actions) => {
-          await axios({
-            method: "PUT",
-            url: `http://127.0.0.1:8000/api/dates/${this.props.match.params.id}/`,
-            data: values
-          })
-            .then(response => {
-              actions.setSubmitting(true);
-              console.log(values);
-              history.push("/");
-            })
-            .catch(error => {
-              actions.setSubmitting(true);
-            });
-        }}
+        onSubmit={this.onSubmit}
       >
         {({
           values,
@@ -137,23 +108,36 @@ export default class EditProject extends Component {
           handleBlur,
           handleSubmit,
           isSubmitting,
-          setFieldValue
+          setFieldValue,
+          setFieldTouched
         }) => (
           <Form mode="themed">
+            <div className="butt">
+              <button onClick={() => history.push("/")}>
+                <img src={cancel} alt={"Cancel"} />
+              </button>
+            </div>
             <div style={mystyle}>
               <div>
                 <div style={title}>
-                  <h1>Edit Project</h1>
+                  <h2>Edit Project</h2>
                 </div>
                 <div>
-                  <Input
-                    name="project"
-                    label="Project name"
-                    required
-                    value={this.state.item.project}
-                    onChange={this.handleChange}
-                  />
-                  <div style={{ display: "flex" }}>
+                  <div
+                    style={{
+                      paddingTop: 20,
+                      width: "100%",
+                      backgroundColor: "#fff"
+                    }}
+                  >
+                    <Input
+                      name="projectname"
+                      type="text"
+                      label="Project name"
+                      required
+                    />
+                  </div>
+                  <div style={{ display: "flex", width: "100%" }}>
                     <Box
                       boxShadow={5}
                       bgcolor="background.paper"
@@ -162,7 +146,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>RAP Consultant</h3>
+                        <h5>RAP Consultant</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -170,7 +154,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.rapstart}
                           onChange={date => setFieldValue("rapstart", date)}
                         />
                         <Datepicker
@@ -178,7 +161,6 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.rapend}
                           onChange={date => setFieldValue("rapend", date)}
                         />
                       </div>
@@ -191,7 +173,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>PDP Houses Consultant</h3>
+                        <h5>PDP Houses Consultant</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -199,7 +181,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.pdpstart}
                           onChange={date => setFieldValue("pdpstart", date)}
                         />
                         <Datepicker
@@ -207,7 +188,6 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.pdpend}
                           onChange={date => setFieldValue("pdpend", date)}
                         />
                       </div>
@@ -220,7 +200,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Resettlement Houses Contractor</h3>
+                        <h5>Resettlement Houses Contractor</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -228,7 +208,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.resettlestart}
                           onChange={date =>
                             setFieldValue("resettlestart", date)
                           }
@@ -238,7 +217,6 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.resettleend}
                           onChange={date => setFieldValue("resettleend", date)}
                         />
                       </div>
@@ -251,7 +229,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Supervision Consultant</h3>
+                        <h5>Supervision Consultant</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -259,7 +237,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.supervisionstart}
                           onChange={date =>
                             setFieldValue("supervisionstart", date)
                           }
@@ -269,7 +246,6 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.supervisionend}
                           onChange={date =>
                             setFieldValue("supervisionend", date)
                           }
@@ -286,7 +262,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>EPC</h3>
+                        <h5>EPC</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -294,7 +270,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.epcstart}
                           onChange={date => setFieldValue("epcstart", date)}
                         />
                         <Datepicker
@@ -302,7 +277,6 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.epcend}
                           onChange={date => setFieldValue("epcend", date)}
                         />
                       </div>
@@ -315,7 +289,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Performance Guarantee</h3>
+                        <h5>Performance Guarantee</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -323,7 +297,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.performstart}
                           onChange={date => setFieldValue("performstart", date)}
                         />
                         <Datepicker
@@ -331,7 +304,6 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.performend}
                           onChange={date => setFieldValue("performend", date)}
                         />
                       </div>
@@ -344,7 +316,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Advance Payment Guarantee</h3>
+                        <h5>Advance Payment Guarantee</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -352,7 +324,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.advancestart}
                           onChange={date => setFieldValue("advancestart", date)}
                         />
                         <Datepicker
@@ -360,7 +331,6 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.advanceend}
                           onChange={date => setFieldValue("advanceend", date)}
                         />
                       </div>
@@ -373,7 +343,7 @@ export default class EditProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Insurance</h3>
+                        <h5>Insurance</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -381,7 +351,6 @@ export default class EditProject extends Component {
                           label="Start date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.insurestart}
                           onChange={date => setFieldValue("insurestart", date)}
                         />
                         <Datepicker
@@ -389,26 +358,26 @@ export default class EditProject extends Component {
                           label="End date"
                           placeholder="DD.MM.YYYYY"
                           dateFormat="dd.MM.yyyy"
-                          selected={this.state.item.insureend}
                           onChange={date => setFieldValue("insureend", date)}
                         />
                       </div>
                     </Box>
                   </div>
-                  <div style={{ paddingTop: 50, width: "100%" }}>
-                    <Input
-                      name="comment"
-                      label="Write a comment"
-                      value={this.state.item.comment}
-                      onChange={this.handleChange}
-                    />
+                  <div
+                    style={{
+                      paddingTop: 50,
+                      width: "100%",
+                      backgroundColor: "#fff"
+                    }}
+                  >
+                    <Input name="comment" type="text" label="Write a comment" />
                   </div>
                 </div>
               </div>
               <Button
                 style={{
                   padding: 10,
-                  borderRadius: 10,
+                  borderRadius: 5,
                   width: "16%",
                   backgroundColor: "#1E90FF",
                   color: "#fff",
@@ -426,3 +395,10 @@ export default class EditProject extends Component {
     );
   }
 }
+const mapStateToProps = state => ({
+  project: state.projects.project
+});
+
+export default connect(mapStateToProps, { oneProject, updateProject })(
+  EditProject
+);

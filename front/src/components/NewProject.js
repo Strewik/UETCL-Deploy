@@ -1,13 +1,17 @@
 import { Formik } from "formik";
 import { Form, Datepicker, Button, Textarea, Input } from "react-formik-ui";
-import axios from "axios";
 import * as Yup from "yup";
 import React, { Component } from "react";
 import Box from "@material-ui/core/Box";
 import "react-toastify/dist/ReactToastify.css";
+import "./style.css";
+import cancel from "../images/cancel.png";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { addProject } from "../actions/projects";
 
 const formSchema = Yup.object().shape({
-  project: Yup.string()
+  projectname: Yup.string()
     .min(2, "Too Short!")
     .max(50, "Too Long!")
     .required("You must specify the Project name"),
@@ -55,7 +59,7 @@ const formSchema = Yup.object().shape({
 });
 
 const initialValues = {
-  project: "",
+  projectname: "",
   rapstart: "",
   rapend: "",
   pdpstart: "",
@@ -75,11 +79,41 @@ const initialValues = {
   comment: ""
 };
 
-export default class NewProject extends Component {
+class NewProject extends Component {
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      projectname: "",
+      rapstart: "",
+      rapend: "",
+      pdpstart: "",
+      pdpend: "",
+      resettlestart: "",
+      resettleend: "",
+      supervisionstart: "",
+      supervisionend: "",
+      epcstart: "",
+      epcend: "",
+      performstart: "",
+      performend: "",
+      advancestart: "",
+      advanceend: "",
+      insurestart: "",
+      insureend: "",
+      comment: ""
+    };
   }
+
+  static propTypes = {
+    addProject: PropTypes.func.isRequired,
+    isAuthenticated: PropTypes.bool
+  };
+
+  onSubmit = (values, { setSubmitting }) => {
+    this.props.addProject(values);
+    this.setSubmitting = setSubmitting;
+    this.props.history.push("/display");
+  };
 
   render() {
     const { history } = this.props;
@@ -98,22 +132,7 @@ export default class NewProject extends Component {
       <Formik
         initialValues={initialValues}
         validationSchema={formSchema}
-        onSubmit={async (values, actions) => {
-          await axios({
-            method: "POST",
-            url: "http://127.0.0.1:8000/api/dates/",
-            data: values
-          })
-            .then(response => {
-              actions.setSubmitting(true);
-              actions.resetForm();
-              console.log(values);
-              history.push("/");
-            })
-            .catch(error => {
-              actions.setSubmitting(true);
-            });
-        }}
+        onSubmit={this.onSubmit}
       >
         {({
           values,
@@ -122,17 +141,36 @@ export default class NewProject extends Component {
           handleBlur,
           handleSubmit,
           isSubmitting,
-          setFieldValue
+          setFieldValue,
+          setFieldTouched
         }) => (
           <Form mode="themed">
+            <div className="butt">
+              <button onClick={() => history.push("/display")}>
+                <img src={cancel} alt={"Cancel"} />
+              </button>
+            </div>
             <div style={mystyle}>
               <div>
                 <div style={title}>
-                  <h1>Add Project Form</h1>
+                  <h2>New Project Form</h2>
                 </div>
                 <div>
-                  <Input name="project" label="Project name" required />
-                  <div style={{ display: "flex" }}>
+                  <div
+                    style={{
+                      paddingTop: 10,
+                      width: "100%",
+                      backgroundColor: "#fff"
+                    }}
+                  >
+                    <Input
+                      name="projectname"
+                      label="Project Name"
+                      value={values.projectname}
+                      required
+                    />
+                  </div>
+                  <div style={{ display: "flex", width: "100%" }}>
                     <Box
                       boxShadow={5}
                       bgcolor="background.paper"
@@ -141,7 +179,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>RAP Consultant</h3>
+                        <h5>RAP Consultant</h5>
                       </div>
                       <div style={boxed}>
                         <Datepicker
@@ -168,7 +206,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>PDP Houses Consultant</h3>
+                        <h5>PDP Houses Consultant</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -195,7 +233,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Resettlement Houses Contractor</h3>
+                        <h5>Resettlement Houses Contractor</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -222,7 +260,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Supervision Consultant</h3>
+                        <h5>Supervision Consultant</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -251,7 +289,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>EPC</h3>
+                        <h5>EPC</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -278,7 +316,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Performance Guarantee</h3>
+                        <h5>Performance Guarantee</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -305,7 +343,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Advance Payment Guarantee</h3>
+                        <h5>Advance Payment Guarantee</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -332,7 +370,7 @@ export default class NewProject extends Component {
                       style={{ padding: 10, borderRadius: 10, width: "30%" }}
                     >
                       <div style={title}>
-                        <h3>Insurance</h3>
+                        <h5>Insurance</h5>
                       </div>
                       <div>
                         <Datepicker
@@ -352,22 +390,31 @@ export default class NewProject extends Component {
                       </div>
                     </Box>
                   </div>
-                  <Textarea
-                    name="comment"
-                    value={values.comment}
-                    label="Write a comment"
-                  />
+                  <div
+                    style={{
+                      marginTop: 10,
+                      paddingTop: 10,
+                      width: "100%",
+                      backgroundColor: "#fff"
+                    }}
+                  >
+                    <Textarea
+                      name="comment"
+                      value={values.comment}
+                      label="Write a Comment"
+                    />
+                  </div>
                 </div>
               </div>
               <Button
                 style={{
                   padding: 10,
-                  borderRadius: 10,
+                  borderRadius: 5,
                   width: "15%",
                   backgroundColor: "#1E90FF",
                   color: "#fff",
-                  fontWeight: 'bold',
-                  fontSize: '20px',
+                  fontWeight: "bold",
+                  fontSize: "20px"
                 }}
                 type="submit"
               >
@@ -380,3 +427,5 @@ export default class NewProject extends Component {
     );
   }
 }
+
+export default connect(null, { addProject })(NewProject);

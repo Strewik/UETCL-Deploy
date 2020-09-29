@@ -1,31 +1,40 @@
-import React from "react";
-import axios from "axios";
+import React, { Component, Fragment } from "react";
 import NewProject from "./components/NewProject";
 import EditProject from "./components/EditProject";
 import DisplayData from "./components/DisplayData";
 import uetcllogo2 from "./images/uetcllogo2.jpg";
 import styles from "./components/styles.module.css";
+import "bootstrap/dist/css/bootstrap.css";
 import {
   BrowserRouter as Router,
   Switch,
   Route,
   Redirect
 } from "react-router-dom";
+import { Provider as AlertProvider } from "react-alert";
+import AlertTemplate from "react-alert-template-basic";
+import Register from "./components/accounts/Register";
+import Login from "./components/accounts/Login";
+import PrivateRoute from "./components/common/PrivateRoute";
+import Headers from "./components/layout/Headers";
+import Alerts from "./components/layout/Alerts";
+import { Provider } from "react-redux";
+import store from "./store";
+import { loadUser } from "./actions/auth";
 
-export default class App extends React.Component {
+const alertOptions = {
+  timeout: 3000,
+  position: "top center"
+};
+
+export default class App extends Component {
   state = {
     redirect: true
   };
 
-  updateProject = item => {
-    axios
-      .put(`http://localhost:8000/api/dates/${item.id}/`, item)
-      .then(res => {
-        this.setState({ items: res.data });
-        this.props.history.push("/");
-      })
-      .catch(err => console.log(err));
-  };
+  componentDidMount() {
+    store.dispatch(loadUser());
+  }
 
   render() {
     const notfound = () => {
@@ -35,24 +44,32 @@ export default class App extends React.Component {
       }
     };
     return (
-      <Router>
-        <div className="App">
-          <div className={styles.mainHeader}>
-            <img src={uetcllogo2} alt={"logo"} />
-          </div>
-          <Switch>
-            <Route path="/" exact component={DisplayData} />
-            <Route path="/newproject" component={NewProject} />
-            <Route
-              path="/editproject/:id"
-              render={props => (
-                <EditProject {...props} updateProject={this.updateProject} />
-              )}
-            />
-            <Route component={notfound} />
-          </Switch>
-        </div>
-      </Router>
+      <Provider store={store}>
+        <AlertProvider template={AlertTemplate} {...alertOptions}>
+          <Router>
+            <Fragment>
+              <div className="App">
+                <div className={styles.mainHeader}>
+                  <img src={uetcllogo2} alt={"logo"} />
+                </div>
+                <Headers />
+                <Alerts />
+                <Switch>
+                  <Route path="/" exact component={Login} />
+                  <Route path="/register" exact component={Register} />
+                  <PrivateRoute path="/display" exact component={DisplayData} />
+                  <PrivateRoute path="/newproject" component={NewProject} />
+                  <PrivateRoute
+                    path="/editproject/:id"
+                    component={EditProject}
+                  />
+                  <Route component={notfound} />
+                </Switch>
+              </div>
+            </Fragment>
+          </Router>
+        </AlertProvider>
+      </Provider>
     );
   }
 }

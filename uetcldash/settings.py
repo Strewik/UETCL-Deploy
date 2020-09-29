@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/3.0/ref/settings/
 """
 
 import os
-
 from dotenv import load_dotenv
 load_dotenv(verbose=True)
 
@@ -23,12 +22,13 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/3.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.environ['SECRET_KEY']
+
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False 
+DEBUG = False
 
 ALLOWED_HOSTS = ['*']
-
+# ALLOWED_HOSTS = ['uetcldash-app.herokuapp.com']
 
 # Application definition
 
@@ -43,7 +43,14 @@ INSTALLED_APPS = [
     'front',
     'rest_framework',
     'corsheaders',
+    'knox',
+    'accounts'
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES':
+    ('knox.auth.TokenAuthentication',)
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -145,7 +152,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Africa/Kampala'
 
 USE_I18N = True
 
@@ -159,7 +166,12 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, 'front/build/static')
-# ]
 STATIC_ROOT = os.path.join(BASE_DIR, 'front/build/static')
+
+# Extra lookup directories for collectstatic to find static files
+# STATICFILES_DIRS = (
+#     os.path.join(PROJECT_ROOT, 'static'),
+# )
+
+#  Add configuration for static files storage using whitenoise
+# STATICFILES_STORAGE = 'whitenoise.django.GzipManifestStaticFilesStorage'

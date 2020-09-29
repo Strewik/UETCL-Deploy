@@ -1,279 +1,287 @@
-import React from "react";
+import React, { Component, Fragment } from "react";
 import "./style.css";
 import Clock from "./Clock";
-import { Button } from "react-bootstrap";
-import axios from "axios";
 import dateFormat from "dateformat";
-
 import delete3 from "../images/delete3.png";
 import edit7 from "../images/edit7.png";
+import { connect } from "react-redux";
+import PropTypes from "prop-types";
+import { getProjects, deleteProject } from "../actions/projects";
 
-class DisplayData extends React.Component {
+class DisplayData extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      items: [],
-      isLoaded: false,
       deadline: ""
     };
   }
-  componentDidMount() {
-    fetch("/api/dates/")
-      .then(res => res.json())
-      .then(json => {
-        this.setState({
-          items: json,
-          isLoaded: true
-        });
-      })
-      .catch(err => {
-        console.log(err);
-      });
-  }
 
-  deleteProject(id) {
-    axios
-      .delete(`http://127.0.0.1:8000/api/dates/${id}/`)
-      .then(() => {
-        return axios.get(`http://127.0.0.1:8000/api/dates/`);
-      })
-      .then(res => {
-        const items = res.data;
-        this.setState({ items });
-        console.log(items);
-      });
+  static propTypes = {
+    projects: PropTypes.array.isRequired,
+    getProjects: PropTypes.func.isRequired,
+    deleteProject: PropTypes.func.isRequired
+  };
+
+  componentDidMount() {
+    this.props.getProjects();
   }
 
   render() {
-    const { isLoaded, items } = this.state;
     const { history } = this.props;
-    if (!isLoaded) return <div>Loading...</div>;
-
     return (
-      <div className="App">
-        <div className="addButton">
-          <Button
-            style={{
-              flex: "right",
-              padding: 10,
-              borderRadius: 10,
-              width: "15%",
-              backgroundColor: "#fff",
-              fontWeight: "bold",
-              fontSize: "20px"
-            }}
-            onClick={() => history.push("/newproject")}
-          >
-            Add Project
-          </Button>
-        </div>
-        <h1>Projects Running</h1>
-        {items.map(item => (
-          <div key={item.id}>
-            <div className="overallcontainer">
-              <div id="project">
-                <h2>Project Name: {item.project}</h2>
-                <div className="butt">
-                  <button onClick={() => this.deleteProject(item.id)}>
-                    <img src={delete3} alt={"delete"} />
-                  </button>
-                  <button
-                    onClick={() => history.push(`/editproject/${item.id}/`)}
-                  >
-                    <img src={edit7} alt={"edit"} />
-                  </button>
+      <Fragment>
+        <div className="App">
+          <h1 className="heading">Projects Running</h1>
+          {this.props.projects.map(project => (
+            <div key={project.id}>
+              <div className="overallcontainer">
+                <div id="project">
+                  <h3 className="heading">
+                    Project Name: {project.projectname}
+                  </h3>
+                  <div className="butt">
+                    <button
+                      onClick={this.props.deleteProject.bind(this, project.id)}
+                    >
+                      <img src={delete3} alt={"delete"} />
+                    </button>
+                    <button
+                      onClick={() =>
+                        history.push(`/editproject/${project.id}/`)
+                      }
+                    >
+                      <img src={edit7} alt={"edit"} />
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="projects">
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>RAP Consultant</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>
-                          {dateFormat(item.rapstart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End date:</strong>
-                          {dateFormat(item.rapend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.rapend} />
+                <div className="projects">
+                  {project.rapend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>RAP Consultant</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.rapstart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End date:</strong>
+                              {dateFormat(project.rapend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.rapend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>PDP Houses Consultant</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>
-                          {dateFormat(item.pdpstart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End date:</strong>
-                          {dateFormat(item.pdpend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.pdpend} />
+                  ) : null}
+                  {project.pdpend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>PDP Houses Consultant</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.pdpstart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End date:</strong>
+                              {dateFormat(project.pdpend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.pdpend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>Resettlement Houses Contractor</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>
-                          {dateFormat(item.resettlestart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End date:</strong>
-                          {dateFormat(item.resettleend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.resettleend} />
+                  ) : null}
+                  {project.resettleend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>Resettlement Houses Contractor</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.resettlestart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End date:</strong>
+                              {dateFormat(project.resettleend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.resettleend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>Supervision Consultant</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>
-                          {dateFormat(item.supervisionstart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End date:</strong>
-                          {dateFormat(item.supervisionend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.supervisionend} />
+                  ) : null}
+                  {project.supervisionend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>Supervision Consultant</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.supervisionstart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End date:</strong>
+                              {dateFormat(project.supervisionend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.supervisionend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>EPC</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>
-                          {dateFormat(item.epcstart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End date:</strong>
-                          {dateFormat(item.epcend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.epcend} />
+                  ) : null}
+                  {project.epcend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>EPC</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.epcstart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End date:</strong>
+                              {dateFormat(project.epcend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.epcend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>Performance Guarantee</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>
-                          {dateFormat(item.performstart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End date:</strong>
-                          {dateFormat(item.performend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.performend} />
+                  ) : null}
+                  {project.performend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>Performance Guarantee</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.performstart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End date:</strong>
+                              {dateFormat(project.performend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.performend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>Advance Payment Guarantee</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>
-                          {dateFormat(item.advancestart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End Date:</strong>
-                          {dateFormat(item.advanceend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.advanceend} />
+                  ) : null}
+                  {project.advanceend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>Advance Payment Guarantee</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.advancestart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End Date:</strong>
+                              {dateFormat(project.advanceend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.advanceend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="project">
-                  <div className="details">
-                    <div id="contracts">
-                      <h4>Insurance</h4>
-                      <div>
-                        <p>
-                          <strong>Start Date:</strong>{" "}
-                          {dateFormat(item.insurestart, "fullDate")}
-                        </p>
-                        <p>
-                          <strong>End Date:</strong>
-                          {dateFormat(item.insureend, "fullDate")}
-                        </p>
-                        <div>
-                          <strong>Time Left:</strong>
-                          <Clock deadline={item.insureend} />
+                  ) : null}
+                  {project.insureend !== "" ? (
+                    <div className="project">
+                      <div className="details">
+                        <div id="contracts">
+                          <h5>
+                            <b>Insurance</b>
+                          </h5>
+                          <div>
+                            <p>
+                              <strong>Start Date:</strong>
+                              {dateFormat(project.insurestart, "fullDate")}
+                            </p>
+                            <p>
+                              <strong>End Date:</strong>
+                              {dateFormat(project.insureend, "fullDate")}
+                            </p>
+                            <div>
+                              <strong>Time Left:</strong>
+                              <Clock deadline={project.insureend} />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  ) : null}
                 </div>
-              </div>
-
-              <div>
-                <p>
-                  <strong>Comment:</strong>
-                  {item.comment}
-                </p>
+                <div
+                  style={{
+                    paddingTop: 10,
+                    paddingBottom: 10,
+                    width: "92.5%",
+                    backgroundColor: "#fff",
+                    marginLeft: 10
+                  }}
+                >
+                  <h5>
+                    <strong>Comment:</strong>
+                    {project.comment}
+                  </h5>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </Fragment>
     );
   }
 }
+const mapStateToProps = state => ({
+  projects: state.projects.projects
+});
 
-export default DisplayData;
+export default connect(mapStateToProps, { getProjects, deleteProject })(
+  DisplayData
+);
